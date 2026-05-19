@@ -45,6 +45,7 @@ Thumbs.db
 # *.wav
 # *.mp3
 
-# V2 Architecture
+# Node modules
 v2/node_modules/
+v1_v1.5/model_inference/gpt-realtime/node_modules/
 v2/outputs/
