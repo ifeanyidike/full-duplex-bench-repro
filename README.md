@@ -50,11 +50,25 @@ This repository reproduces the Full-Duplex-Bench v1.0 evaluation pipeline and ex
 | Take-Turn Rate ↑ | **0.983** | 0.958 | 1.000 |
 | Latency ↓ | **0.977** | 1.425 | 0.567 |
 
+### User Interruption (synthetic_user_interruption, n=200)
+
+| Metric | MLX Whisper-v3 | AssemblyAI | Paper (Gemini 3.1) |
+|---|---|---|---|
+| GPT-4 Rating ↑ | **3.53** | 3.51 | 3.575 |
+| TOR ↑ | 1.0 | 1.0 | 1.000 |
+| Latency ↓ | **0.441** | 0.714 | 0.337 |
+
 ---
 
-## Key Finding
+## Key Findings
 
-**Evaluation metrics are not uniformly ASR-invariant.** JSD and backchannel frequency are stable across ASR backends (timing-based, transcript-independent). TOR and pause handling metrics diverge significantly — MLX Whisper-v3 produces scores consistent with the paper's reported values, while AssemblyAI's more conservative word boundary detection causes systematic underestimation of turn-taking rate in pause-handling tasks. This suggests that **TOR-based metrics are sensitive to ASR word segmentation behaviour**, not just transcription accuracy.
+**1. Timing-based metrics are ASR-invariant.** JSD and backchannel frequency are identical across both backends — these metrics depend on audio timestamps, not transcript content.
+
+**2. TOR and latency are sensitive to ASR word segmentation.** MLX Whisper-v3 consistently produces scores closer to the paper's reported values. AssemblyAI's more conservative word boundary detection causes systematic underestimation of turn-taking rate (pause handling: 0.856 MLX vs 0.111 AssemblyAI) and overestimation of response latency.
+
+**3. LLM-as-judge scores are ASR-robust.** GPT-4 ratings for user interruption quality are nearly identical across backends (3.53 vs 3.51), suggesting semantic evaluation is not affected by minor transcription differences.
+
+**Implication:** Benchmarks that rely on TOR-based metrics should specify and fix the ASR backend, as different transcription systems can produce scores that differ by an order of magnitude on the same model outputs.
 
 ---
 
