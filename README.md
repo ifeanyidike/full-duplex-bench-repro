@@ -1,74 +1,173 @@
+# Full-Duplex-Bench: Reproduction & ASR Sensitivity Analysis
 
-# Full-Duplex-Bench: A Benchmark Suite for Evaluating Full-Duplex Spoken Dialogue Models and Systems
-
-<div align="center">
-  <img src="./fdb-logo.png" width="70%" alt="FDB Logo" />
-</div>
-
-<div align="center">
+> **Fork of [DanielLin94144/Full-Duplex-Bench](https://github.com/DanielLin94144/Full-Duplex-Bench)**
+> Reproduction of the v1.0 evaluation pipeline on Gemini 3.1 Flash Live, extended with a systematic analysis of ASR backend sensitivity on turn-taking evaluation metrics.
 
 [![arXiv v1.0](https://img.shields.io/badge/v1.0_arXiv-2503.04721-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2503.04721)
 [![arXiv v1.5](https://img.shields.io/badge/v1.5_arXiv-2507.23159-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2507.23159)
-[![arXiv v2.0](https://img.shields.io/badge/v2.0_arXiv-2510.07838-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2510.07838)
-[![arXiv v3.0](https://img.shields.io/badge/v3.0_arXiv-2604.04847-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2604.04847)
-[![code](https://img.shields.io/badge/Github-Code-keygen.svg?logo=github)](https://github.com/DanielLin94144/Full-Duplex-Bench)
 
-</div>
+---
 
-Welcome to **Full-Duplex-Bench**, with v1.0, v1.5, v2.0, and v3.0, a comprehensive framework designed to evaluate the conversational and turn-taking capabilities of spoken language models.
-## News 🔥
-- **(2026/5/10) Codebase Update for New Models and Bug Fixes**: Add Gemini 3.1 Flash Live Preview to v1/v1.5, and update the codebase.
-- **(2026/4/15) Full-Duplex-Bench v3 Paper Released**: The [FDB-v3 paper](https://arxiv.org/abs/2604.04847) is now on arXiv with a [demo website](https://daniellin94144.github.io/FDB-v3-demo/). Many people have reached out asking about the code and data release — they are currently undergoing internal review. We will update the repository as soon as the review is complete. Thank you for your patience! 🙏
-- **(2026/2/23) Full-Duplex-Bench v2 Framework Release**: Introduced the V2 architecture with a real-time WebRTC orchestrator and automated AI examiner in the [`v2/`](./v2) folder!
-- **(2026/2/21) Codebase Update for New Models and Bug Fixes**: Add Gemini 2.5 Native Audio & PersonaPlex, and update the codebase.
-- **(2025/8/22) v1.5 Server-client Model inference Code Release**: Added server-client inference scripts under [`v1_v1.5/model_inference/`](./v1_v1.5/model_inference).
-- **(2025/8/15) v1.5 Data Release**: Added v1.5 dataset with overlap scenarios and metadata annotations under [`v1_v1.5/dataset/`](./v1_v1.5/dataset).
-- **(2025/8/14) v1.5 Evaluation Code Release**: Added support for overlap handling with new metrics in Full-Duplex-Bench v1.5 under [`v1_v1.5/evaluation/`](./v1_v1.5/evaluation).
-- **(2025/6/05) Paper & ASR Model Update**: Replaced the ASR model with nvidia/parakeet-tdt-0.6b-v2, which offers more reliable time-aligned transcriptions for evaluation purposes.
+## Overview
 
+This repository reproduces the Full-Duplex-Bench v1.0 evaluation pipeline and extends it with an analysis of how ASR transcription quality affects downstream turn-taking metrics. The original benchmark uses `nvidia/parakeet-tdt-0.6b-v2` via NeMo (CUDA-only) for speech-to-text. We replace this with two alternative backends and measure whether evaluation scores are stable across transcription systems.
 
-## 🏗️ Repository Architecture
-Due to the evolution of evaluation paradigms—from static dataset evaluation to dynamic real-time interaction—this repository is organized into distinct architectures:
+**Research question:** *How sensitive are full-duplex turn-taking evaluation metrics (TOR, JSD, backchannel frequency, response latency) to the choice of ASR backend?*
 
-### [Full-Duplex-Bench v1 & v1.5 (Static Offline Evaluation)](./v1_v1.5)
-**👉 [Dive into v1 & v1.5](./v1_v1.5/README.md)**
+---
 
-The **legacy v1 and v1.5** pipelines evaluate models based on pre-recorded static datasets in an offline, server-client inference manner.
-- **Highlights (v1.0)**: Systematically assesses 4 dimensions: Pause Handling, Backchanneling, Smooth Turn-Taking, and User Interruption. ([FDB v1.0 paper](https://arxiv.org/abs/2503.04721))
-- **Highlights (v1.5)**: Extends the benchmark with overlap scenarios including listener backchannel, side conversation, and ambient speech. ([FDB v1.5 paper](https://arxiv.org/abs/2507.23159))
+## Contributions Beyond the Original
 
-### [Full-Duplex-Bench-v2 (Real-Time Dynamic Evaluation)](./v2)
-**👉 [Dive into v2](./v2/README.md)** | [Demo Website](https://ericsunkuan.github.io/full-duplex-bench-v2-demo/)
+| File | Description |
+|---|---|
+| `v1_v1.5/get_transcript/asr_mlx.py` | Drop-in ASR replacement using `whisper-large-v3` via [mlx-whisper](https://github.com/ml-explore/mlx-examples) — runs natively on Apple Silicon (M-series) with no CUDA dependency |
+| `v1_v1.5/get_transcript/asr_assemblyai.py` | Drop-in ASR replacement using AssemblyAI REST API — GPU-free, cloud-based transcription |
+| `v1_v1.5/evaluation/evaluate_compare.py` | Runs evaluation for each ASR backend sequentially and reports metrics side-by-side for direct comparison |
 
-**FDB-v2** is our actively evolving, state-of-the-art framework. It orchestrates **real-time audio conversations** (via WebRTC or WebSocket) between your target model (the Examinee) and an automated AI evaluator (the Examiner). 
-- **Highlights**: Dynamic multi-turn tasks, WebRTC Node.js orchestrator, conversational constraints, LLM-as-a-judge automated scoring. ([FDB v2.0 paper](https://arxiv.org/abs/2510.07838))
-- **Use Case**: Best for evaluating how well a model converses reactively in a live environment.
+---
 
-### Full-Duplex-Bench-v3
-**👉 [Dive into v3 (Coming soon)]** | [Demo Website](https://daniellin94144.github.io/FDB-v3-demo/)
+## Results: Gemini 3.1 Flash Live (thinking_level=minimal)
 
-**FDB-v3** (*Benchmarking Tool Use for Full-Duplex Voice Agents Under Real-World Disfluency*) combines **real human disfluent speech** with **multi-step tool use** to evaluate voice agents under realistic conditions.
-- **What we built**: Real human recordings annotated across 5 disfluency types (fillers, pauses, hesitations, false starts, self-corrections), paired with chained API calls across 4 task domains.
+### Backchannel (icc_backchannel, n=55)
 
+| Metric | MLX Whisper-v3 | AssemblyAI | Paper (Gemini 3.1) |
+|---|---|---|---|
+| JSD ↓ | 0.8119 ± 0.0764 | 0.8119 ± 0.0764 | 0.807 |
+| TOR ↓ | 0.7091 ± 0.4542 | **0.7273 ± 0.4454** | 0.727 |
+| Freq ↑ | 0.0375 ± 0.0216 | 0.0375 ± 0.0216 | 0.044 |
 
-## 🧭 Getting Started
+### Pause Handling
 
-Depending on your goal, please navigate to the respective folder:
+| Dataset | Metric | MLX Whisper-v3 | AssemblyAI | Paper |
+|---|---|---|---|---|
+| candor_pause_handling (n=216) | Take-Turn Rate ↑ | **0.856** | 0.111 | 0.153 |
+| synthetic_pause_handling (n=137) | Take-Turn Rate ↑ | **0.934** | 0.015 | 0.022 |
 
-- **To run offline static evaluations or reproduce results from our v1.0/v1.5 papers:**  
-  Navigate to the [`v1_v1.5/` directory](./v1_v1.5) to view datasets, setup offline inference, and compute static metrics.
+### Smooth Turn-Taking (candor_turn_taking, n=119)
 
-- **To benchmark a model using the latest real-time automated AI examiner (v2):**  
-  Navigate to the [`v2/` directory](./v2) and follow the combined Node.js and Python setup instructions.
+| Metric | MLX Whisper-v3 | AssemblyAI | Paper |
+|---|---|---|---|
+| Take-Turn Rate ↑ | **0.983** | 0.958 | 1.000 |
+| Latency ↓ | **0.977** | 1.425 | 0.567 |
 
+---
 
+## Key Finding
 
-## 📖 Citation
+**Evaluation metrics are not uniformly ASR-invariant.** JSD and backchannel frequency are stable across ASR backends (timing-based, transcript-independent). TOR and pause handling metrics diverge significantly — MLX Whisper-v3 produces scores consistent with the paper's reported values, while AssemblyAI's more conservative word boundary detection causes systematic underestimation of turn-taking rate in pause-handling tasks. This suggests that **TOR-based metrics are sensitive to ASR word segmentation behaviour**, not just transcription accuracy.
 
-If you found this research helpful, please consider citing our work:
+---
+
+## Setup
+
+### Requirements
+
+```bash
+conda create -n full-duplex-bench python=3.10
+conda activate full-duplex-bench
+pip install -r v1_v1.5/requirements.txt
+pip install mlx-whisper torchcodec
+```
+
+> `mlx-whisper` replaces the NeMo/parakeet dependency and runs natively on Apple Silicon.
+> `torchcodec` is required by newer versions of torchaudio for audio loading.
+
+### Environment
+
+```bash
+cp v1_v1.5/.env.example v1_v1.5/.env
+# Fill in:
+# GEMINI_API_KEY=...         (required for inference)
+# OPENAI_API_KEY=...         (required for user_interruption evaluation)
+# ASSEMBLYAI_API_KEY=...     (required for asr_assemblyai.py)
+```
+
+### Dataset
+
+Download from the [official Google Drive](https://drive.google.com/drive/folders/1DtoxMVO9_Y_nDs2peZtx3pw-U2qYgpd3) and extract to a local `data/` directory:
+
+```
+data/
+  v1.0/
+    icc_backchannel/
+    candor_pause_handling/
+    candor_turn_taking/
+    synthetic_pause_handling/
+    synthetic_user_interruption/
+  v1.5/
+    user_interruption/
+    user_backchannel/
+    talking_to_other/
+    background_speech/
+```
+
+---
+
+## Reproduction Steps
+
+### 1. Model Inference
+
+```bash
+python v1_v1.5/model_inference/gemini/inference_gemini31_live.py \
+    --base-dir /path/to/data/v1.0 \
+    --task icc_backchannel \
+    --thinking-level minimal \
+    --concurrency 1
+```
+
+Repeat for each task: `icc_backchannel`, `candor_pause_handling`, `candor_turn_taking`, `synthetic_pause_handling`, `synthetic_user_interruption`.
+
+### 2. ASR Transcription
+
+```bash
+# MLX Whisper (Apple Silicon, no GPU required)
+python v1_v1.5/get_transcript/asr_mlx.py \
+    --root_dir /path/to/data/v1.0/icc_backchannel
+
+# AssemblyAI API
+python v1_v1.5/get_transcript/asr_assemblyai.py \
+    --root_dir /path/to/data/v1.0/icc_backchannel
+
+# For user_interruption task — crops audio after the interrupt point before transcribing
+python v1_v1.5/get_transcript/asr_mlx.py \
+    --root_dir /path/to/data/v1.0/synthetic_user_interruption \
+    --task user_interruption
+```
+
+Each script writes backend-specific JSON files (`output_mlx.json`, `output_assemblyai.json`) alongside the audio, so multiple backends can coexist without overwriting each other.
+
+### 3. Standard Evaluation (single backend)
+
+```bash
+cd v1_v1.5/evaluation
+python evaluate.py --task backchannel --root_dir /path/to/data/v1.0/icc_backchannel
+```
+
+### 4. Cross-Backend Comparison
+
+```bash
+cd v1_v1.5/evaluation
+python evaluate_compare.py \
+    --task backchannel \
+    --root_dir /path/to/data/v1.0/icc_backchannel
+```
+
+Supported tasks: `backchannel`, `pause_handling`, `smooth_turn_taking`, `user_interruption`.
+
+---
+
+## Hardware
+
+All Gemini inference and MLX ASR runs were performed on a MacBook Pro M3 Max (no CUDA required). The original NeMo/parakeet ASR requires a CUDA GPU — see the [upstream repo](https://github.com/DanielLin94144/Full-Duplex-Bench) for GPU-based setup.
+
+---
+
+## Citation
+
+If you use this work, please cite the original benchmark:
 
 ```bibtex
-@article{lin2025fdb_v1,
+@article{lin2025full_v1,
   title={Full-duplex-bench: A benchmark to evaluate full-duplex spoken dialogue models on turn-taking capabilities},
   author={Lin, Guan-Ting and Lian, Jiachen and Li, Tingle and Wang, Qirui and Anumanchipalli, Gopala and Liu, Alexander H and Lee, Hung-yi},
   journal={arXiv preprint arXiv:2503.04721},
@@ -76,27 +175,15 @@ If you found this research helpful, please consider citing our work:
 }
 
 @article{lin2025fdb_v15,
-  title={Full-Duplex-Bench v1. 5: Evaluating Overlap Handling for Full-Duplex Speech Models},
+  title={Full-Duplex-Bench v1.5: Evaluating Overlap Handling for Full-Duplex Speech Models},
   author={Lin, Guan-Ting and Kuan, Shih-Yun Shan and Wang, Qirui and Lian, Jiachen and Li, Tingle and Lee, Hung-yi},
   journal={arXiv preprint arXiv:2507.23159},
   year={2025}
 }
-
-@article{lin2026fdb_v2,
-  title={Full-Duplex-Bench-v2: A Multi-Turn Evaluation Framework for Duplex Dialogue Systems with an Automated Examiner},
-  author={Lin, Guan-Ting and Kuan, Shih-Yun Shan and Shi, Jiatong and Chang, Kai-Wei and Arora, Siddhant and Watanabe, Shinji and Lee, Hung-yi},
-  journal={arXiv preprint arXiv:2510.07838},
-  year={2026}
-}
-
-@article{lin2026fdb_v3,
-  title={Full-Duplex-Bench-v3: Benchmarking Tool Use for Full-Duplex Voice Agents Under Real-World Disfluency},
-  author={Lin, Guan-Ting and Chen, Chen and Chen, Zhehuai and Lee, Hung-yi},
-  journal={arXiv preprint arXiv:2604.04847},
-  year={2026}
-}
-
 ```
 
 ---
-*For questions, please feel free to submit an issue or contact Guan-Ting Lin (daniel094144@gmail.com).*
+
+## Acknowledgements
+
+Original benchmark by [Guan-Ting Lin](https://daniellin94144.github.io/) et al. at UC Berkeley / NTU.
