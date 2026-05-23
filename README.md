@@ -5,6 +5,8 @@
 
 [![arXiv v1.0](https://img.shields.io/badge/v1.0_arXiv-2503.04721-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2503.04721)
 [![arXiv v1.5](https://img.shields.io/badge/v1.5_arXiv-2507.23159-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2507.23159)
+[![Preprint v1.0](https://img.shields.io/badge/Preprint_v1.0-Zenodo-blue.svg)](https://doi.org/10.5281/zenodo.20305268)
+[![Preprint v1.5](https://img.shields.io/badge/Preprint_v1.5-Zenodo-blue.svg)](https://doi.org/10.5281/zenodo.20354457)
 
 ---
 
